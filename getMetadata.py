@@ -10,10 +10,15 @@ class Meta:
         self.metadata.reflect(bind=self.engine)
 
     def getTables(self):
+        ''' function for getting all the tables in the schema
+            this list all the available functions'''
         return self.metadata.tables.keys()
 
     def getMetaForTable(self, table):
+        ''' this is for getting metadata for the given table
+            if the table is not found this raises an Exception'''
         if table in self.metadata.tables.keys():
+            # for getting the table metadata
             tableMeta = dict(
                 [(table, dict(
                     [(i, self.filterColMeta(j))
@@ -21,9 +26,12 @@ class Meta:
                 ))])
             return tableMeta
         else:
-            raise 'Table Not Found'
+            raise Exception('Table Not Found')
 
     def filterColMeta(self, data):
+        ''' for converting column object to keys 
+            and parsing the data and objects to JSON serializable
+            format so that it can be dumped as JSON'''
         allowedKeys = ['comment',
                        'index',
                        'server_onupdate',
@@ -45,8 +53,10 @@ class Meta:
                        'type']
         columMeta = dict([(i, j.__str__()) if i == 'type' else (i, j)
                           for i, j in data.__dict__.items() if i in allowedKeys])
+        # convert the Foriegn key object to dict and string
         columMeta['foreign_keys'] = map(
             str, list(columMeta.pop('foreign_keys')))
+        # set to list conversion
         columMeta['constraints'] = list(columMeta.pop('constraints'))
         return columMeta
 
