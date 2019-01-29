@@ -1,5 +1,6 @@
 from sqlalchemy import *
 import json
+from dicttoxml import dicttoxml
 
 
 class Meta:
@@ -42,11 +43,17 @@ class Meta:
                        'unique',
                        'constraints',
                        'type']
-        return dict([(i, j.__str__()) if i == 'type' else (i, j) for i, j in data.__dict__.items() if i in allowedKeys])
+        columMeta = dict([(i, j.__str__()) if i == 'type' else (i, j)
+                          for i, j in data.__dict__.items() if i in allowedKeys])
+        columMeta['foreign_keys'] = map(
+            str, list(columMeta.pop('foreign_keys')))
+        columMeta['constraints'] = list(columMeta.pop('constraints'))
+        return columMeta
 
 
 m = Meta('sqlite:///satyam.db')
 print m.getTables()
-m.getMetaForTable('abc')
-
-# t = m.metadata.tables['user']
+print json.dumps(m.getMetaForTable('user'), indent=4)
+print json.dumps(m.getMetaForTable('user_prefs'), indent=4)
+print dicttoxml(m.getMetaForTable('user'))
+print dicttoxml(m.getMetaForTable('user_prefs'))
